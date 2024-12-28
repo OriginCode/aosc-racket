@@ -74,6 +74,7 @@
                  ,(src-value src))
                "::"))
 
+;; TODO: __$ARCH support
 (define/contract (srcs->string srcs)
   (-> (listof src?) string?)
   (string-append "SRCS=\"" (string-join (map src->string srcs)) "\""))
@@ -96,6 +97,7 @@
       "SKIP"
       (format "~a::~a" (chksum-type chksum) (chksum-value chksum))))
 
+;; TODO: __$ARCH support
 (define/contract (chksums->string chksums)
   (-> (listof chksum?) string?)
   (string-append "CHKSUMS=\"" (string-join (map chksum->string chksums)) "\""))
@@ -112,6 +114,7 @@
 (struct spec-type (ver rel srcs chksums chkupdate dummysrc?) #:transparent)
 
 ;; `spec` constructor
+;; TODO: __$ARCH support, probably (or/c (hash/c symbol? (listof obj?)) (listof obj?))
 (define/contract (spec #:ver ver
                        #:rel [rel #f]
                        #:srcs [srcs null]
