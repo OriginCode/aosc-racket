@@ -1,5 +1,5 @@
 #lang info
-(define collection "aosc")
+(define collection 'multi)
 (define deps '("base"))
 (define build-deps '("scribble-lib" "racket-doc" "rackunit-lib"))
 (define scribblings '(("scribblings/aosc.scrbl" ())))

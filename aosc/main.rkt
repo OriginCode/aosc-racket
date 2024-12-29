@@ -4,10 +4,6 @@
          net/url
          "private/spec.rkt")
 
-(module+ test
-  (require rackunit
-           rackunit/text-ui))
-
 ;; Probably like this?
 ;(define sample-package
 ;  (define ver "1.0.0")
@@ -39,5 +35,4 @@
   (-> package? void?)
   void)
 
-(module+ test
-  (run-tests spec-tests))
+(provide (all-from-out "private/spec.rkt"))
