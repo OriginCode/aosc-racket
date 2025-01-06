@@ -7,22 +7,22 @@
          "arch.rkt")
 
 (provide branch
-          commit
-          rename
-          submodule
-          copy-repo?
-          git
-          tbl
-          skip
-          checksum
-          anitya
-          github
-          gitlab
-          gitweb
-          git-generic
-          html
-          spec
-          write-spec)
+         commit
+         rename
+         submodule
+         copy-repo?
+         git
+         tbl
+         skip
+         checksum
+         anitya
+         github
+         gitlab
+         gitweb
+         git-generic
+         html
+         spec
+         write-spec)
 
 (define/contract (boolean->symbol b)
   (-> boolean? symbol?)
@@ -142,7 +142,7 @@
   (-> exact-nonnegative-integer? chkupdate?)
   (chkupdate 'anitya (format "id=~a" id)))
 
-(define/contract (github repo [pattern #f] [sort-version #f])
+(define/contract (github repo (pattern #f) [sort-version #f])
   (->* (string?) (string? boolean?) chkupdate?)
   (chkupdate 'github
              (string-append (string-append "repo=" repo)
@@ -155,10 +155,8 @@
                                                                 sort-version)))
                                 ""))))
 
-(define/contract (gitlab repo [instance #f] [pattern #f] [sort-version #f])
-  (->* (string?)
-       (string? string? boolean?)
-       chkupdate?)
+(define/contract (gitlab repo [instance #f] (pattern #f) [sort-version #f])
+  (->* (string?) (string? string? boolean?) chkupdate?)
   (chkupdate 'gitlab
              (string-append (string-append "repo=" repo)
                             (if instance
@@ -173,7 +171,7 @@
                                                                 sort-version)))
                                 ""))))
 
-(define/contract (gitweb url [pattern #f])
+(define/contract (gitweb url (pattern #f))
   (->* (string?) (string?) chkupdate?)
   (chkupdate 'gitweb
              (string-append (string-append "url=" url)
@@ -181,7 +179,7 @@
                                 (string-append ";pattern=" pattern)
                                 ""))))
 
-(define/contract (git-generic url [pattern #f])
+(define/contract (git-generic url (pattern #f))
   (->* (string?) (string?) chkupdate?)
   (chkupdate 'git
              (string-append (string-append "url=" url)
@@ -200,7 +198,8 @@
    (format "~a::~a" (chkupdate-type chkupdate) (chkupdate-value chkupdate))))
 
 ;; Whole `spec` file struct
-(struct spec-type (ver rel srcs subdir chksums chkupdate dummysrc?) #:transparent)
+(struct spec-type (ver rel srcs subdir chksums chkupdate dummysrc?)
+  #:transparent)
 
 ;; `spec` constructor
 (define/contract (spec #:ver ver
@@ -219,10 +218,8 @@
         #:dummysrc? boolean?)
        spec-type?)
   ;; Checks
-  (when (xor (list? srcs)
-             (list? chksums))
-    (raise-user-error 'spec
-                      "SRCS and CHKSUMS should have the same contract"))
+  (when (xor (list? srcs) (list? chksums))
+    (raise-user-error 'spec "SRCS and CHKSUMS should have the same contract"))
   (when (and (or (null? srcs)
                  (null? chksums)
                  (hash-empty? srcs)
@@ -230,14 +227,11 @@
              (not dummysrc?))
     (raise-user-error 'spec "either add SRCS and CHKSUMS or specify DUMMYSRC"))
   (when (and (hash? srcs)
-             (not (equal? (hash-keys srcs #t)
-                          (hash-keys chksums #t))))
+             (not (equal? (hash-keys srcs #t) (hash-keys chksums #t))))
     (raise-user-error 'spec "SRCS and CHKSUMS have mismatching ARCH args"))
   (when (not (if (list? srcs)
-                 (equal? (length srcs)
-                         (length chksums))
-                 (andmap (λ (s c) (equal? (length s)
-                                          (length c)))
+                 (equal? (length srcs) (length chksums))
+                 (andmap (λ (s c) (equal? (length s) (length c)))
                          (hash->list srcs #t)
                          (hash->list chksums #t))))
     (raise-user-error 'spec "SRCS and CHKSUMS length mismatch"))
@@ -249,25 +243,25 @@
   (-> spec-type? output-port? void?)
   (displayln (spec-entry->string "VER" (spec-type-ver spec)) out)
   (when (spec-type-rel spec)
-      (displayln (spec-entry->string "REL" (spec-type-rel spec)) out))
+    (displayln (spec-entry->string "REL" (spec-type-rel spec)) out))
   (when (not (spec-type-dummysrc? spec))
     (if (list? (spec-type-srcs spec))
-      (displayln (srcs->string (spec-type-srcs spec)) out)
-      (for ([arch-srcs (hash->list (spec-type-srcs spec))])
-        (displayln (srcs->string (cdr arch-srcs)
-                               (car arch-srcs)) out))))
+        (displayln (srcs->string (spec-type-srcs spec)) out)
+        (for ([arch-srcs (hash->list (spec-type-srcs spec))])
+          (displayln (srcs->string (cdr arch-srcs) (car arch-srcs)) out))))
   (when (spec-type-subdir spec)
     (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec)) out))
   (when (not (spec-type-dummysrc? spec))
     (if (list? (spec-type-chksums spec))
-      (displayln (chksums->string (spec-type-chksums spec)) out)
-      (for ([arch-chksums (hash->list (spec-type-chksums spec))])
-        (displayln (chksums->string (cdr arch-chksums)
-                               (car arch-chksums)) out))))
+        (displayln (chksums->string (spec-type-chksums spec)) out)
+        (for ([arch-chksums (hash->list (spec-type-chksums spec))])
+          (displayln (chksums->string (cdr arch-chksums) (car arch-chksums))
+                     out))))
   (when (spec-type-chkupdate spec)
     (displayln (chkupdate->string (spec-type-chkupdate spec)) out))
   (when (spec-type-dummysrc? spec)
-    (displayln (spec-entry->string "DUMMYSRC"
-                        (number->string (boolean->exact-nonnegative-integer
-                          (spec-type-dummysrc? spec)))) out))
-  )
+    (displayln
+     (spec-entry->string "DUMMYSRC"
+                         (number->string (boolean->exact-nonnegative-integer
+                                          (spec-type-dummysrc? spec))))
+     out)))
