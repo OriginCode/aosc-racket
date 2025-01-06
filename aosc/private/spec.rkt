@@ -10,6 +10,19 @@
   (-> boolean? symbol?)
   (if b 'true 'false))
 
+(define/contract (spec-entries->string
+                  entry-name entries entry->string [arch 'any])
+  (->* (string? (listof any/c) (-> any/c string?))
+       (symbol?)
+       string?)
+  (string-append entry-name
+                 (if (equal? arch 'any)
+                     ""
+                     (string-append "__" (string-upcase (symbol->string arch))))
+                 "=\""
+                 (string-join (map entry->string entries))
+                 "\""))
+
 ;; SRCS options
 ;;==============
 (struct src-option (field value) #:transparent)
@@ -73,10 +86,9 @@
                  ,(src-value src))
                "::"))
 
-;; TODO: __$ARCH support
-(define/contract (srcs->string srcs)
-  (-> (listof src?) string?)
-  (string-append "SRCS=\"" (string-join (map src->string srcs)) "\""))
+(define/contract (srcs->string srcs [arch 'any])
+  (->* ((listof src?)) (symbol?) string?)
+  (spec-entries->string "SRCS" srcs src->string arch))
 
 ;; CHKSUMS= field
 ;;================
@@ -96,12 +108,11 @@
       "SKIP"
       (format "~a::~a" (chksum-type chksum) (chksum-value chksum))))
 
-;; TODO: __$ARCH support
-(define/contract (chksums->string chksums)
-  (-> (listof chksum?) string?)
-  (string-append "CHKSUMS=\"" (string-join (map chksum->string chksums)) "\""))
+(define/contract (chksums->string chksums [arch 'any])
+  (->* ((listof chksum?)) (symbol?) string?)
+  (spec-entries->string "CHKSUMS" chksums chksum->string arch))
 
-;; TODO: CHKUPDATE= field
+;; CHKUPDATE= field (https://wiki.aosc.io/developer/packaging/aosc-findupdate/)
 ;;==================
 (struct chkupdate (type value) #:transparent)
 
@@ -109,11 +120,85 @@
   (-> exact-nonnegative-integer? chkupdate?)
   (chkupdate 'anitya (format "id=~a" id)))
 
+(define/contract (github repo [pattern #f] [sort-version #f])
+  (->* (string?)
+       ((or/c boolean? string?)
+        boolean?)
+       chkupdate?)
+  (chkupdate 'github
+             (string-append
+                     (string-append "repo="repo)
+                     (if pattern
+                         (string-append ";pattern=" pattern)
+                         "")
+                     (if sort-version
+                         (string-append ";sort_version=" (symbol->string (boolean->symbol
+                                                           sort-version)))
+                         ""))))
+
+(define/contract (gitlab repo [instance #f] [pattern #f] [sort-version #f])
+  (->* (string?)
+       ((or/c boolean? string?)
+        (or/c boolean? string?)
+        boolean?)
+       chkupdate?)
+  (chkupdate 'gitlab
+             (string-append
+                     (string-append "repo="repo)
+                     (if instance
+                         (string-append ";instance=" instance)
+                         "")
+                     (if pattern
+                         (string-append ";pattern=" pattern)
+                         "")
+                     (if sort-version
+                         (string-append ";sort_version=" (symbol->string (boolean->symbol
+                                                           sort-version)))
+                         ""))))
+
+(define/contract (gitweb url [pattern #f])
+  (->* (string?)
+       ((or/c boolean? string?))
+       chkupdate?)
+  (chkupdate 'gitweb
+             (string-append
+                     (string-append "url=" url)
+                     (if pattern
+                         (string-append ";pattern=" pattern)
+                         "")
+                     )))
+
+(define/contract (git-generic url [pattern #f])
+  (->* (string?)
+       ((or/c boolean? string?))
+       chkupdate?)
+  (chkupdate 'git
+             (string-append
+                     (string-append "url=" url)
+                     (if pattern
+                         (string-append ";pattern=" pattern)
+                         "")
+                     )))
+
+(define/contract (html url pattern)
+  (-> string? string?
+       chkupdate?)
+  (chkupdate 'gitweb
+             (string-append
+                     "url=" url
+                     ";pattern=" pattern)))
+
+(define/contract (chkupdate->string chkupdate)
+  (-> chkupdate? string?)
+  (string-append "CHKUPDATE="
+                 (symbol->string (chkupdate-type chkupdate))
+                 "::"
+                 (chkupdate-value chkupdate)))
+
 ;; Whole `spec` file struct
 (struct spec-type (ver rel srcs chksums chkupdate dummysrc?) #:transparent)
 
 ;; `spec` constructor
-;; TODO: __$ARCH support, probably (or/c (hash/c symbol? (listof obj?)) (listof obj?))
 (define/contract (spec #:ver ver
                        #:rel [rel #f]
                        #:srcs [srcs null]
@@ -123,9 +208,9 @@
                        #:dummysrc? [dummysrc? #f])
   (->* (#:ver string?)
        (#:rel exact-nonnegative-integer?
-              #:srcs (listof src?)
+              #:srcs (or/c (hash/c symbol? (listof src?)) (listof src?))
               #:subdir string?
-              #:chksums (listof chksum?)
+              #:chksums (or/c (hash/c symbol? (listof chksum?)) (listof chksum?))
               #:chkupdate chkupdate?
               #:dummysrc? boolean?)
        spec-type?)

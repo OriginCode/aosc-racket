@@ -122,6 +122,21 @@
      "SRCS=\"tbl::rename=racket::https://download.racket-lang.org/releases/8.15/installers/racket-8.15-src.tgz git::copy-repo=true;rename=nvidia;commit=tags/v0.0.1;submodule=recursive::https://github.com/NVIDIA/nvidia-settings\""
      "SRCS ->string")
 
+    (check-equal?
+     (srcs->string
+      (list
+       (tbl
+        "https://download.racket-lang.org/releases/8.15/installers/racket-8.15-src.tgz"
+        #:options (list (rename "racket")))
+       (git "https://github.com/NVIDIA/nvidia-settings"
+            #:options (list (copy-repo? #t)
+                            (rename "nvidia")
+                            (commit (string-append "tags/v" "0.0.1"))
+                            (submodule 'recursive))))
+      'amd64)
+     "SRCS__AMD64=\"tbl::rename=racket::https://download.racket-lang.org/releases/8.15/installers/racket-8.15-src.tgz git::copy-repo=true;rename=nvidia;commit=tags/v0.0.1;submodule=recursive::https://github.com/NVIDIA/nvidia-settings\""
+     "SRCS ->string with ARCH")
+
     (test-suite "CHKSUMS tests"
                 (check-equal?
                  (chksums->string
@@ -131,4 +146,26 @@
                     'sha256
                     "4ccdbbd95d4aef058502c8ee07b1abb490f5ef4a4d6ff711440facd0b8eded33")))
                  "CHKSUMS=\"SKIP sha256::4ccdbbd95d4aef058502c8ee07b1abb490f5ef4a4d6ff711440facd0b8eded33\""
-                 "CHKSUMS ->string"))))
+                 "CHKSUMS ->string")
+
+                (check-equal?
+                 (chksums->string
+                  (list
+                   (skip)
+                   (checksum
+                    'sha256
+                    "4ccdbbd95d4aef058502c8ee07b1abb490f5ef4a4d6ff711440facd0b8eded33"))
+                  'amd64)
+                 "CHKSUMS__AMD64=\"SKIP sha256::4ccdbbd95d4aef058502c8ee07b1abb490f5ef4a4d6ff711440facd0b8eded33\""
+                 "CHKSUMS ->string with ARCH"))
+
+    (test-suite "CHKUPDATE tests"
+                (check-equal?
+                 (chkupdate->string
+                  (gitlab "OriginCode/aosc-racket"
+                          "https://factoria.origincode.me"
+                          "\\d+\\.\\d+\\.\\d+"
+                          #t))
+                 "CHKUPDATE=gitlab::repo=OriginCode/aosc-racket;instance=https://factoria.origincode.me;pattern=\\d+\\.\\d+\\.\\d+;sort_version=true"
+                 "CHKUPDATE ->string GitLab"))
+                 ))
