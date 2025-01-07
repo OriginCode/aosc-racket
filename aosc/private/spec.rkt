@@ -22,6 +22,14 @@
          gitweb
          git-generic
          html
+         (contract-out
+          [struct spec-type ((ver string?)
+                             (rel exact-nonnegative-integer?)
+                             (srcs (or/c (hash/c arch? (listof src?)) (listof src?)))
+                             (subdir string?)
+                             (chksums (or/c (hash/c arch? (listof chksum?)) (listof chksum?)))
+                             (chkupdate chkupdate?)
+                             (dummysrc? boolean?))])
          spec
          write-spec)
 

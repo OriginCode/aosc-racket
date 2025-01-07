@@ -1,4 +1,5 @@
 VER=31.0.0
+REL=1
 SRCS__AMD64="git::commit=tags/31.0.0;rename=obs-studio::https://github.com/obsproject/obs-studio tbl::rename=cef.tar.bz2::https://cef-builds.spotifycdn.com/cef_binary_127.3.5+g114ea2a+chromium-127.0.6533.120_linux64_minimal.tar.bz2"
 SRCS="git::commit=tags/31.0.0;rename=obs-studio::https://github.com/obsproject/obs-studio"
 SRCS__ARM64="git::commit=tags/31.0.0;rename=obs-studio::https://github.com/obsproject/obs-studio tbl::rename=cef.tar.bz2::https://cef-builds.spotifycdn.com/cef_binary_127.3.5+g114ea2a+chromium-127.0.6533.120_linuxarm64_minimal.tar.bz2"

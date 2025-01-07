@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/contract
+         racket/format
          racket/string
          "arch.rkt")
 
@@ -15,11 +16,11 @@
   (if b 1 0))
 
 (define/contract (spec-entry->string entry-name value [quote? #f] [arch 'any])
-  (->* (string? string?) (boolean? arch?) string?)
+  (->* (string? any/c) (boolean? arch?) string?)
   (string-append entry-name
                  (if (equal? arch 'any)
                      ""
                      (string-append "__" (string-upcase (symbol->string arch))))
                  (if quote? "=\"" "=")
-                 value
+                 (~a value)
                  (if quote? "\"" "")))

@@ -10,6 +10,7 @@
          #:options (list (commit (string-append "tags/" version)) (rename "obs-studio"))))
   (spec
    #:ver version
+   #:rel 1
    #:srcs
    (hash
     'any
