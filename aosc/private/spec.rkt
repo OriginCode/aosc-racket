@@ -35,8 +35,8 @@
   (-> boolean? exact-nonnegative-integer?)
   (if b 1 0))
 
-(define/contract (spec-entry->string entry-name value [arch 'any] [quote? #f])
-  (->* (string? string?) (arch? boolean?) string?)
+(define/contract (spec-entry->string entry-name value [quote? #f] [arch 'any])
+  (->* (string? string?) (boolean? arch?) string?)
   (string-append entry-name
                  (if (equal? arch 'any)
                      ""
@@ -110,7 +110,7 @@
 
 (define/contract (srcs->string srcs [arch 'any])
   (->* ((listof src?)) (arch?) string?)
-  (spec-entry->string "SRCS" (string-join (map src->string srcs)) arch #t))
+  (spec-entry->string "SRCS" (string-join (map src->string srcs)) #t arch))
 
 ;; CHKSUMS= field
 ;;================
@@ -134,8 +134,8 @@
   (->* ((listof chksum?)) (arch?) string?)
   (spec-entry->string "CHKSUMS"
                       (string-join (map chksum->string chksums))
-                      arch
-                      #t))
+                      #t
+                      arch))
 
 ;; CHKUPDATE= field (https://wiki.aosc.io/developer/packaging/aosc-findupdate/)
 ;;==================
@@ -199,7 +199,6 @@
   (spec-entry->string
    "CHKUPDATE"
    (format "~a::~a" (chkupdate-type chkupdate) (chkupdate-value chkupdate))
-   'any
    #t))
 
 ;; Whole `spec` file struct
@@ -255,7 +254,7 @@
         (for ([arch-srcs (hash->list (spec-type-srcs spec))])
           (displayln (srcs->string (cdr arch-srcs) (car arch-srcs)) out))))
   (when (spec-type-subdir spec)
-    (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec) 'any #t) out))
+    (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec) #t) out))
   (when (not (spec-type-dummysrc? spec))
     (if (list? (spec-type-chksums spec))
         (displayln (chksums->string (spec-type-chksums spec)) out)
