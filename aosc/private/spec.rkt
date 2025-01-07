@@ -255,7 +255,7 @@
         (for ([arch-srcs (hash->list (spec-type-srcs spec))])
           (displayln (srcs->string (cdr arch-srcs) (car arch-srcs)) out))))
   (when (spec-type-subdir spec)
-    (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec)) out))
+    (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec) 'any #t) out))
   (when (not (spec-type-dummysrc? spec))
     (if (list? (spec-type-chksums spec))
         (displayln (chksums->string (spec-type-chksums spec)) out)
