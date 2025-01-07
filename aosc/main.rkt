@@ -35,4 +35,8 @@
   (-> package? void?)
   void)
 
-(provide (all-from-out "private/spec.rkt"))
+(provide (except-out (all-from-out "private/spec.rkt")
+                     spec-type)
+         (contract-out [struct package ((section string?)
+                                        (spec spec-type?)
+                                        (defines void?))]))
