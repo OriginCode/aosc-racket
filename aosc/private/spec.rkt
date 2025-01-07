@@ -4,16 +4,20 @@
          racket/contract
          racket/string
          net/url
+         "hashing-algorithm.rkt"
          "arch.rkt"
          "utils.rkt")
 
-(provide branch
+(provide src-option?
+         branch
          commit
          rename
          submodule
          copy-repo?
+         src?
          git
          tbl
+         chksum?
          skip
          checksum
          anitya
@@ -108,7 +112,7 @@
 (struct chksum (type value) #:transparent)
 
 (define/contract (checksum algorithm value)
-  (-> symbol? string? chksum?)
+  (-> algorithm? string? chksum?)
   (chksum algorithm value))
 
 (define/contract (skip)
