@@ -63,9 +63,9 @@
    (cond
      [(boolean? method) (boolean->symbol method)]
      [(symbol? method)
-      (if (not (equal? method 'recursive))
-          (raise-argument-error 'submodule "boolean? or 'recursive" method)
-          method)])))
+      (unless (equal? method 'recursive)
+        (raise-argument-error 'submodule "boolean? or 'recursive" method))
+      method])))
 
 (define/contract (copy-repo? val)
   (-> boolean? src-option?)
@@ -82,12 +82,9 @@
 (define/contract (tbl url #:options [options null])
   (->* (string?) (#:options (listof src-option?)) src?)
   (define allowed-options '(rename))
-  (for-each (λ (opt)
-              (when (not (member (src-option-field opt) allowed-options))
-                (raise-user-error 'tbl
-                                  "~a option is not allowed in tbl source"
-                                  (src-option-field opt))))
-            options)
+  (for ([opt (in-list options)]
+        #:when (not (member (src-option-field opt) allowed-options)))
+    (raise-user-error 'tbl "~a option is not allowed in tbl source" (src-option-field opt)))
   (src 'tbl options url))
 
 (define/contract (src->string src)
@@ -228,11 +225,11 @@
   (when (and (hash? srcs)
              (not (equal? (hash-keys srcs #t) (hash-keys chksums #t))))
     (raise-user-error 'spec "SRCS and CHKSUMS have mismatching ARCH args"))
-  (when (not (if (list? srcs)
-                 (equal? (length srcs) (length chksums))
-                 (andmap (λ (s c) (equal? (length s) (length c)))
-                         (hash->list srcs #t)
-                         (hash->list chksums #t))))
+  (unless (if (list? srcs)
+              (equal? (length srcs) (length chksums))
+              (andmap (λ (s c) (equal? (length s) (length c)))
+                      (hash->list srcs #t)
+                      (hash->list chksums #t)))
     (raise-user-error 'spec "SRCS and CHKSUMS length mismatch"))
 
   ;; Final struct
@@ -243,19 +240,18 @@
   (displayln (spec-entry->string "VER" (spec-type-ver spec)) out)
   (when (spec-type-rel spec)
     (displayln (spec-entry->string "REL" (spec-type-rel spec)) out))
-  (when (not (spec-type-dummysrc? spec))
+  (unless (spec-type-dummysrc? spec)
     (if (list? (spec-type-srcs spec))
         (displayln (srcs->string (spec-type-srcs spec)) out)
         (for ([arch-srcs (hash->list (spec-type-srcs spec))])
           (displayln (srcs->string (cdr arch-srcs) (car arch-srcs)) out))))
   (when (spec-type-subdir spec)
     (displayln (spec-entry->string "SUBDIR" (spec-type-subdir spec) #t) out))
-  (when (not (spec-type-dummysrc? spec))
+  (unless (spec-type-dummysrc? spec)
     (if (list? (spec-type-chksums spec))
         (displayln (chksums->string (spec-type-chksums spec)) out)
         (for ([arch-chksums (hash->list (spec-type-chksums spec))])
-          (displayln (chksums->string (cdr arch-chksums) (car arch-chksums))
-                     out))))
+          (displayln (chksums->string (cdr arch-chksums) (car arch-chksums)) out))))
   (when (spec-type-chkupdate spec)
     (displayln (chkupdate->string (spec-type-chkupdate spec)) out))
   (when (spec-type-dummysrc? spec)

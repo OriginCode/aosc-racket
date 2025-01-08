@@ -6,6 +6,4 @@
 
 (define/contract (arch? sym)
   (-> symbol? boolean?)
-  (if (member sym '(any amd64 arm64 loongarch64 ppc64el loongson3 riscv64))
-      #t
-      #f))
+  (and (member sym '(any amd64 arm64 loongarch64 ppc64el loongson3 riscv64)) #t))
