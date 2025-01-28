@@ -19,7 +19,7 @@
   (->* (string? any/c) (boolean? arch?) string?)
   (string-append entry-name
                  (if (equal? arch 'any)
-                     ""
+                     "" 
                      (string-append "__" (string-upcase (symbol->string arch))))
                  (if quote? "=\"" "=")
                  (~a value)
