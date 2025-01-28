@@ -1,23 +1,31 @@
 #lang racket/base
 
 (require racket/contract
+         racket/format
+         racket/string
          (for-syntax racket/base
                      racket/syntax))
 
 (define-syntax (define-vars stx)
   (syntax-case stx ()
-    [(_ contract a)
+    [(_ array contract a)
      (with-syntax
-         ([a-type (format-id #'a "~a-type" #'a)]
-          [a-vals (format-id #'a "~a-type-vals" #'a)]
-          [a? (format-id #'a "~a-type?" #'a)])
+       ([a-val (format-id #'a "~a-val" #'a)]
+        [a? (format-id #'a "~a?" #'a)]
+        [a->string (format-id #'a "~a->string" #'a)] )
        #`(begin
-           (struct a-type (vals) #:transparent)
-           (define/contract (a val)
-             (-> contract a?)
-             (a-type val))
+           (struct a (val) #:transparent)
+           (define/contract (a->string val)
+             (-> a? string?)
+             (format "~a=~a"
+                     'a
+                     (if (equal? 'contract string?)
+                         (a-val val)
+                         (if 'array 
+                             (format "(~a)" (string-join (map ~v (a-val val))))
+                             (format "\"~a\"" (string-join (a-val val)))))))
            ))]
-    [(_ contract a b ...)
+    [(_ array contract a b ...)
      #'(begin
          (define-vars contract a)
          (define-vars contract b ...))]
